@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tensor Trust：来自在线游戏的可解释提示注入攻击 - HTML 摘要</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1c2430;
+      --muted: #5e6a78;
+      --line: #d7dde5;
+      --paper: #f6f8fb;
+      --panel: #ffffff;
+      --accent: #1f6f78;
+      --accent-2: #9c4f2f;
+      --accent-3: #556b2f;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); line-height: 1.65; }
+    main { width: min(1120px, calc(100vw - 40px)); margin: 28px auto 56px; }
+    section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 24px; margin-top: 18px; }
+    .hero { color: white; border: 0; padding: 34px 34px 30px; background: linear-gradient(135deg, #1f6f78, #344e7a); }
+    .hero.tensor { background: linear-gradient(135deg, #284a76, #7a4a68); }
+    .hero.struq { background: linear-gradient(135deg, #155f68, #5d6e2f); }
+    .hero.physics { background: linear-gradient(135deg, #374f39, #7d6040); }
+    .hero.melon { background: linear-gradient(135deg, #116b63, #784f25); }
+    .hero.udora { background: linear-gradient(135deg, #463d73, #8a3f4d); }
+    .eyebrow { margin: 0 0 8px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+    h1 { margin: 0; font-size: 32px; line-height: 1.22; letter-spacing: 0; }
+    .hero p:last-child { max-width: 880px; margin: 14px 0 0; font-size: 17px; opacity: .94; }
+    h2 { margin: 0 0 16px; font-size: 22px; line-height: 1.3; border-left: 5px solid var(--accent); padding-left: 10px; }
+    h3 { margin: 0 0 8px; font-size: 17px; }
+    p { margin: 0; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    article { border: 1px solid var(--line); border-radius: 8px; padding: 16px; background: #fbfcfe; }
+    .timeline { margin: 0; padding-left: 24px; }
+    .timeline li { margin: 12px 0; padding-left: 4px; }
+    .timeline span { display: inline-block; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
+    table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 8px; }
+    th, td { border: 1px solid var(--line); padding: 12px 14px; vertical-align: top; text-align: left; }
+    th { background: #eef3f6; font-weight: 700; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0; margin: 0; list-style: none; }
+    .cards li { border-left: 4px solid var(--accent-2); background: #fbfcfe; border-radius: 8px; padding: 14px 16px; }
+    strong { color: #9c3b2e; }
+    footer { color: var(--muted); margin-top: 18px; font-size: 13px; text-align: right; }
+    @media (max-width: 820px) {
+      main { width: min(100vw - 24px, 720px); margin-top: 14px; }
+      section { padding: 18px; }
+      .hero { padding: 24px; }
+      h1 { font-size: 25px; }
+      .grid, .cards { grid-template-columns: 1fr; }
+      table { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+
+        <section class="hero tensor">
+          <p class="eyebrow">LLM 安全 / 提示注入数据集</p>
+          <h1>Tensor Trust：来自在线游戏的可解释提示注入攻击</h1>
+          <p>论文通过一个公开在线攻防游戏收集真实人类攻击与防御样本，构建提示劫持和提示提取鲁棒性基准，用于研究指令跟随 LLM 的提示注入脆弱性。</p>
+        </section>
+        <section>
+          <h2>核心创新</h2>
+          <div class="grid">
+            <article><h3>真实人类攻防数据</h3><p>利用 Tensor Trust 游戏收集超过 <strong>126,000</strong> 条提示注入攻击与 <strong>46,000</strong> 条基于提示的防御。</p></article>
+            <article><h3>可解释攻击策略</h3><p>通过聚类与人工标注总结 16 类高频攻击策略，显示攻击往往具有组合式结构并会在玩家之间传播演化。</p></article>
+            <article><h3>双任务基准</h3><p>将提示注入拆为 <strong>prompt hijacking</strong> 与 <strong>prompt extraction</strong>，分别评估模型是否会被改写目标或泄露防御提示/访问码。</p></article>
+          </div>
+        </section>
+        <section>
+          <h2>技术路线</h2>
+          <ol class="timeline">
+            <li><span>游戏化采集</span><p>玩家编写防御提示，使模型仅在输入秘密访问码时输出 “access granted”；攻击者不知道防御和访问码，需要注入提示绕过。</p></li>
+            <li><span>启发式筛选</span><p>从成功攻击中区分提示劫持与提示提取，去除偶然命中和不符合任务定义的样本。</p></li>
+            <li><span>策略分析</span><p>用 LDA 聚类和人工审阅识别主导攻击策略，并分析 9 周内策略频率变化。</p></li>
+            <li><span>鲁棒性评估</span><p>在多种 LLM 上测试 hijacking robustness rate 与 extraction robustness rate，并额外发布提示提取检测数据集。</p></li>
+          </ol>
+        </section>
+        <section>
+          <h2>关键指标</h2>
+          <table>
+            <tr><th>指标</th><th>数值/结论</th></tr>
+            <tr><td>数据规模</td><td>126k+ 攻击，46k+ 防御；作者称其为当时最大的人类生成指令跟随 LLM 对抗样本集。</td></tr>
+            <tr><td>任务类型</td><td>提示劫持：不用访问码也诱导输出 access granted；提示提取：诱导模型泄露足够防御信息以获得访问码。</td></tr>
+            <tr><td>检测样本</td><td>零样本提示提取检测可达到约 <strong>97%</strong> precision 和 <strong>84%</strong> recall，但作者指出鲁棒检测仍未解决。</td></tr>
+            <tr><td>泛化性</td><td>部分游戏内攻击策略可迁移到真实部署的 LLM 应用，说明游戏约束下学到的策略具有外部有效性。</td></tr>
+          </table>
+        </section>
+        <section>
+          <h2>研究亮点</h2>
+          <ul class="cards">
+            <li>把提示注入从抽象漏洞变成可重复、可统计、可解释的攻防生态。</li>
+            <li>强调攻击不是单一 “ignore previous instructions”，而是多策略组合与社会传播。</li>
+            <li>提供数据、代码和基准，便于后续防御方法做横向比较。</li>
+          </ul>
+        </section>
+        
+<footer>文件名已按论文主旨重命名；摘要根据论文正文、图表说明和实验结果整理。</footer>
+</main>
+</body>
+</html>

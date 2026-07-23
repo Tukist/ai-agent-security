@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MELON：AI 智能体间接提示注入的可证明防御 - HTML 摘要</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1c2430;
+      --muted: #5e6a78;
+      --line: #d7dde5;
+      --paper: #f6f8fb;
+      --panel: #ffffff;
+      --accent: #1f6f78;
+      --accent-2: #9c4f2f;
+      --accent-3: #556b2f;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); line-height: 1.65; }
+    main { width: min(1120px, calc(100vw - 40px)); margin: 28px auto 56px; }
+    section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 24px; margin-top: 18px; }
+    .hero { color: white; border: 0; padding: 34px 34px 30px; background: linear-gradient(135deg, #1f6f78, #344e7a); }
+    .hero.tensor { background: linear-gradient(135deg, #284a76, #7a4a68); }
+    .hero.struq { background: linear-gradient(135deg, #155f68, #5d6e2f); }
+    .hero.physics { background: linear-gradient(135deg, #374f39, #7d6040); }
+    .hero.melon { background: linear-gradient(135deg, #116b63, #784f25); }
+    .hero.udora { background: linear-gradient(135deg, #463d73, #8a3f4d); }
+    .eyebrow { margin: 0 0 8px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+    h1 { margin: 0; font-size: 32px; line-height: 1.22; letter-spacing: 0; }
+    .hero p:last-child { max-width: 880px; margin: 14px 0 0; font-size: 17px; opacity: .94; }
+    h2 { margin: 0 0 16px; font-size: 22px; line-height: 1.3; border-left: 5px solid var(--accent); padding-left: 10px; }
+    h3 { margin: 0 0 8px; font-size: 17px; }
+    p { margin: 0; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    article { border: 1px solid var(--line); border-radius: 8px; padding: 16px; background: #fbfcfe; }
+    .timeline { margin: 0; padding-left: 24px; }
+    .timeline li { margin: 12px 0; padding-left: 4px; }
+    .timeline span { display: inline-block; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
+    table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 8px; }
+    th, td { border: 1px solid var(--line); padding: 12px 14px; vertical-align: top; text-align: left; }
+    th { background: #eef3f6; font-weight: 700; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0; margin: 0; list-style: none; }
+    .cards li { border-left: 4px solid var(--accent-2); background: #fbfcfe; border-radius: 8px; padding: 14px 16px; }
+    strong { color: #9c3b2e; }
+    footer { color: var(--muted); margin-top: 18px; font-size: 13px; text-align: right; }
+    @media (max-width: 820px) {
+      main { width: min(100vw - 24px, 720px); margin-top: 14px; }
+      section { padding: 18px; }
+      .hero { padding: 24px; }
+      h1 { font-size: 25px; }
+      .grid, .cards { grid-template-columns: 1fr; }
+      table { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+
+        <section class="hero melon">
+          <p class="eyebrow">AI Agent 安全 / 间接提示注入防御</p>
+          <h1>MELON：AI 智能体间接提示注入的可证明防御</h1>
+          <p>MELON 利用“成功攻击会让智能体下一步动作更依赖恶意任务而非用户任务”的观察，通过遮蔽用户提示并重执行轨迹来检测间接提示注入。</p>
+        </section>
+        <section>
+          <h2>核心创新</h2>
+          <div class="grid">
+            <article><h3>Masked re-Execution</h3><p>把用户任务经过 masking function 改写后重新执行，如果原执行和遮蔽执行产生相似工具动作，则判定可能被恶意任务主导。</p></article>
+            <article><h3>Tool comparisON</h3><p>比较两条轨迹中的工具调用相似度，而不是只做文本分类，贴合 agent 攻击的实际危害出口。</p></article>
+            <article><h3>可组合防御</h3><p>MELON 可与提示增强防御组合为 MELON-Aug，进一步降低 ASR 并保持正常效用。</p></article>
+          </div>
+        </section>
+        <section>
+          <h2>技术路线</h2>
+          <ol class="timeline">
+            <li><span>原始执行</span><p>智能体按用户任务和工具返回信息生成下一步动作。</p></li>
+            <li><span>遮蔽执行</span><p>对用户任务做 masking 后重放同一轨迹上下文，观察下一步动作是否仍相似。</p></li>
+            <li><span>相似度判定</span><p>若两次生成的工具动作高度相似，说明动作可能由工具返回中的恶意任务驱动。</p></li>
+            <li><span>误报/漏报控制</span><p>论文加入三项关键设计以降低 false positive 和 false negative，并通过消融实验验证。</p></li>
+          </ol>
+        </section>
+        <section>
+          <h2>关键指标</h2>
+          <table>
+            <tr><th>指标</th><th>结果</th></tr>
+            <tr><td>数据集与模型</td><td>在 AgentDojo 上评估 GPT-4o、o3-mini、Llama-3.3-70B。</td></tr>
+            <tr><td>GPT-4o 总体</td><td>MELON-Aug 达到 <strong>68.72%</strong> Utility under Attack 与 <strong>0.32%</strong> ASR；无防御为 69.08% UA 与 16.06% ASR。</td></tr>
+            <tr><td>最低 ASR</td><td>MELON 平均 ASR 可到 <strong>0.24%</strong>；MELON-Aug 为 <strong>0.32%</strong>。</td></tr>
+            <tr><td>效用保持</td><td>相比 LLM detector 等检测式防御，MELON 避免了简单拒绝导致的 0 UA 问题，同时显著降低攻击成功率。</td></tr>
+          </table>
+        </section>
+        <section>
+          <h2>研究亮点</h2>
+          <ul class="cards">
+            <li>把间接提示注入检测转化为“用户任务依赖性”检验，思路简洁且贴近 agent 行为。</li>
+            <li>在攻击阻断和效用保持之间取得比多种 SOTA baseline 更好的折中。</li>
+            <li>提供理论证明、主实验、组合防御和消融，证据链完整。</li>
+          </ul>
+        </section>
+        
+<footer>文件名已按论文主旨重命名；摘要根据论文正文、图表说明和实验结果整理。</footer>
+</main>
+</body>
+</html>

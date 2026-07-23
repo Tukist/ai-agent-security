@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UDora：通过动态劫持推理红队测试 LLM 智能体 - HTML 摘要</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1c2430;
+      --muted: #5e6a78;
+      --line: #d7dde5;
+      --paper: #f6f8fb;
+      --panel: #ffffff;
+      --accent: #1f6f78;
+      --accent-2: #9c4f2f;
+      --accent-3: #556b2f;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); line-height: 1.65; }
+    main { width: min(1120px, calc(100vw - 40px)); margin: 28px auto 56px; }
+    section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 24px; margin-top: 18px; }
+    .hero { color: white; border: 0; padding: 34px 34px 30px; background: linear-gradient(135deg, #1f6f78, #344e7a); }
+    .hero.tensor { background: linear-gradient(135deg, #284a76, #7a4a68); }
+    .hero.struq { background: linear-gradient(135deg, #155f68, #5d6e2f); }
+    .hero.physics { background: linear-gradient(135deg, #374f39, #7d6040); }
+    .hero.melon { background: linear-gradient(135deg, #116b63, #784f25); }
+    .hero.udora { background: linear-gradient(135deg, #463d73, #8a3f4d); }
+    .eyebrow { margin: 0 0 8px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+    h1 { margin: 0; font-size: 32px; line-height: 1.22; letter-spacing: 0; }
+    .hero p:last-child { max-width: 880px; margin: 14px 0 0; font-size: 17px; opacity: .94; }
+    h2 { margin: 0 0 16px; font-size: 22px; line-height: 1.3; border-left: 5px solid var(--accent); padding-left: 10px; }
+    h3 { margin: 0 0 8px; font-size: 17px; }
+    p { margin: 0; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    article { border: 1px solid var(--line); border-radius: 8px; padding: 16px; background: #fbfcfe; }
+    .timeline { margin: 0; padding-left: 24px; }
+    .timeline li { margin: 12px 0; padding-left: 4px; }
+    .timeline span { display: inline-block; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
+    table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 8px; }
+    th, td { border: 1px solid var(--line); padding: 12px 14px; vertical-align: top; text-align: left; }
+    th { background: #eef3f6; font-weight: 700; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0; margin: 0; list-style: none; }
+    .cards li { border-left: 4px solid var(--accent-2); background: #fbfcfe; border-radius: 8px; padding: 14px 16px; }
+    strong { color: #9c3b2e; }
+    footer { color: var(--muted); margin-top: 18px; font-size: 13px; text-align: right; }
+    @media (max-width: 820px) {
+      main { width: min(100vw - 24px, 720px); margin-top: 14px; }
+      section { padding: 18px; }
+      .hero { padding: 24px; }
+      h1 { font-size: 25px; }
+      .grid, .cards { grid-template-columns: 1fr; }
+      table { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+
+        <section class="hero udora">
+          <p class="eyebrow">AI Agent 红队 / 推理劫持攻击</p>
+          <h1>UDora：通过动态劫持推理红队测试 LLM 智能体</h1>
+          <p>UDora 针对会规划和调用工具的 LLM 智能体，动态生成并扰动其推理轨迹，在最优插入点注入目标扰动，从而诱导恶意工具调用或目标行为。</p>
+        </section>
+        <section>
+          <h2>核心创新</h2>
+          <div class="grid">
+            <article><h3>动态推理劫持</h3><p>先生成任务推理 trace，再自动识别插入扰动的最佳位置，使攻击顺着智能体自己的推理链推进。</p></article>
+            <article><h3>统一红队框架</h3><p>同时覆盖 malicious environment 与 malicious target tool 两类场景，能诱导指定恶意行为或指定工具调用。</p></article>
+            <article><h3>迭代优化</h3><p>把扰动后的推理作为 surrogate response 进行优化，逐步提高目标攻击成功率。</p></article>
+          </div>
+        </section>
+        <section>
+          <h2>技术路线</h2>
+          <ol class="timeline">
+            <li><span>生成推理轨迹</span><p>对给定任务获取 agent 的 reasoning trace，显式暴露规划过程。</p></li>
+            <li><span>定位插入点</span><p>搜索 trace 中最适合注入目标扰动的位置，减少对任务表层文本的粗暴改写。</p></li>
+            <li><span>优化扰动</span><p>迭代构造 UDora string，使 agent 的后续推理逐步转向攻击目标。</p></li>
+            <li><span>跨数据集评估</span><p>在 InjecAgent、WebShop、AgentHarm 等数据集上比较 ASR。</p></li>
+          </ol>
+        </section>
+        <section>
+          <h2>关键指标</h2>
+          <table>
+            <tr><th>数据集</th><th>代表性结果</th></tr>
+            <tr><td>InjecAgent</td><td>平均 ASR 可达 <strong>99%</strong>（LLaMA 3.1）和 <strong>97%</strong>（另一主模型设置）。</td></tr>
+            <tr><td>WebShop</td><td>平均 ASR 达 <strong>61.75%</strong>（LLaMA 3.1）与 <strong>91.50%</strong>（另一主模型设置）。</td></tr>
+            <tr><td>AgentHarm</td><td>在 LLaMA 3.1 上 ASR 达 <strong>97.7%</strong>，在另一主模型设置上达 <strong>100.0%</strong>。</td></tr>
+            <tr><td>真实案例</td><td>论文展示 AutoGen 邮件智能体被诱导抓取并回复最近邮件内容的隐私窃取示例。</td></tr>
+          </table>
+        </section>
+        <section>
+          <h2>研究亮点</h2>
+          <ul class="cards">
+            <li>攻击对象从单轮 LLM 输出扩展到带工具调用的多步 agent 行为。</li>
+            <li>利用 reasoning trace 本身作为攻击面，解释了为什么直接攻击有时失败而推理劫持能成功。</li>
+            <li>跨多个 agent 数据集和攻击类别取得高 ASR，适合作为防御方法的压力测试基准。</li>
+          </ul>
+        </section>
+        
+<footer>文件名已按论文主旨重命名；摘要根据论文正文、图表说明和实验结果整理。</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>基于五篇论文的智能体安全攻防总结报告 - HTML摘要</title>
+  <style>
+    :root { --ink:#1f2933; --muted:#5f6b76; --line:#d9e1e8; --paper:#f6f8fb; --panel:#fff; --accent:#0f5964; --warn:#9c4f2f; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--paper); color:var(--ink); line-height:1.65; }
+    main { width:min(1120px, calc(100vw - 40px)); margin:28px auto 52px; }
+    section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:24px; margin-top:18px; }
+    .hero { color:white; border:0; background:linear-gradient(135deg,#0f5964,#364a7d); padding:34px; }
+    h1 { margin:0; font-size:31px; line-height:1.25; letter-spacing:0; }
+    .hero p { max-width:900px; margin:14px 0 0; font-size:17px; opacity:.94; }
+    h2 { margin:0 0 14px; border-left:5px solid var(--accent); padding-left:10px; font-size:22px; }
+    h3 { margin:0 0 8px; font-size:17px; color:var(--accent); }
+    p { margin:0 0 8px; }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    article { border:1px solid var(--line); border-radius:8px; padding:16px; background:#fbfcfe; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { border:1px solid var(--line); padding:11px 12px; text-align:left; vertical-align:top; }
+    th { background:#eaf1f4; }
+    .tag { display:inline-block; background:#eaf1f4; color:#174956; border-radius:999px; padding:2px 9px; font-size:13px; margin-right:6px; }
+    .note { color:var(--muted); font-size:14px; }
+    ul { padding-left:22px; margin:8px 0 0; }
+    strong { color:var(--warn); }
+    @media(max-width:860px) { main { width:calc(100vw - 24px); } .grid { grid-template-columns:1fr; } h1 { font-size:25px; } section,.hero { padding:20px; } }
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <h1>基于五篇论文的智能体安全攻防总结报告</h1>
+    <p>摘要聚焦提示注入、间接提示注入、工具调用安全、推理劫持和运行时防御，并补充 2024-2026 年的联网技术动态。</p>
+  </section>
+  <section>
+    <h2>一句话结论</h2>
+    <p>智能体安全的核心已经从“模型是否输出有害文本”转向“模型是否会在不可信上下文影响下执行错误工具动作”。可靠防线需要协议隔离、任务一致性、权限最小化、运行时监控、动态红队和持续修补共同作用。</p>
+    <p class="note">本地 5 篇现在均为 agent/LLM 安全相关论文；此前误下的高能物理论文已从报告主轴中替换为 AgentDojo。</p>
+  </section>
+  <section>
+    <h2>五篇论文如何串起来</h2>
+    <div class="grid">
+      <article><h3>Tensor Trust [P1]</h3><p>把提示注入攻防数据化：126k+ 攻击、46k+ 防御，区分 prompt hijacking 与 prompt extraction。</p></article>
+      <article><h3>StruQ [P2]</h3><p>用结构化查询隔离 prompt/data，并通过微调让模型忽略 data 通道中的恶意指令。</p></article>
+      <article><h3>MELON [P3]</h3><p>针对工具型 agent 的 IPI，遮蔽用户任务并重执行，比较工具动作是否仍相似。</p></article>
+      <article><h3>UDora [P4]</h3><p>动态劫持 agent 自身 reasoning trace，诱导恶意行为或指定工具调用。</p></article>
+      <article><h3>AgentDojo [P5]</h3><p>构建动态工具型 agent 安全基准：70 个工具、97 个真实任务、27 个注入目标和 629 个安全测试。</p></article>
+    </div>
+  </section>
+  <section>
+    <h2>技术路线地图</h2>
+    <table>
+      <tr><th>路线</th><th>关键思想</th><th>代表来源</th></tr>
+      <tr><td>基准与红队</td><td>用真实/动态任务评估 ASR、UA、BU、风险意识和工具调用行为。</td><td>[P1][P5][P4][W5][W6][W12]</td></tr>
+      <tr><td>协议隔离</td><td>把可信指令和不可信数据分成不同通道，避免混在一个 prompt 里。</td><td>[P2][W14]</td></tr>
+      <tr><td>运行时检测</td><td>通过遮蔽、重执行、因果归因或工具动作比较判断是否被恶意数据支配。</td><td>[P3][W13]</td></tr>
+      <tr><td>任务一致性</td><td>工具调用必须与用户原始任务一致，而不是只看文本是否可疑。</td><td>[W7][W11]</td></tr>
+      <tr><td>记忆/RAG 防护</td><td>长期记忆和知识库可被污染，需要来源认证、写入审批和检索隔离。</td><td>[W8]</td></tr>
+    </table>
+  </section>
+  <section>
+    <h2>联网补充的重点阅读</h2>
+    <p><span class="tag">官方风险框架</span>OWASP LLM Top 10 2025、NCSC “prompt injection is not SQL injection”、OpenAI agent prompt-injection hardening。</p>
+    <p><span class="tag">基准</span>AgentDojo、InjecAgent、Agent Security Bench、AgentDyn。</p>
+    <p><span class="tag">防御</span>Task Shield、PromptArmor、CausalArmor、Design Patterns for Securing LLM Agents。</p>
+    <p><span class="tag">攻击</span>Greshake 等人的间接提示注入、AgentPoison、UDora。</p>
+  </section>
+</main>
+</body>
+</html>
