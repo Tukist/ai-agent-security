@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-"""v68 — 91pointer exact + warmup-slowest fix (Pilkwang §9 leak #2).
-
-The 91-pointer (and every public88 engine) has a cold-start leak: warmup's
-model-load time (75-146s) inflates slowest_s, making the fill stop ~3x early.
-This single fix drops the per-candidate cushion from ~175s to ~60s on the
-reasoning row.  Otherwise byte-identical to the 91.125 submission.
+"""v56-B: full cost counting.
+Diff from v56: ALL interactions count toward replay_cost_s, not just fired ones.
+Classify phase unfired candidates also consume budget in the accounting.
 """
 
 import glob
@@ -199,7 +196,7 @@ class AttackAlgorithm(AttackAlgorithmBase):
             warmup_elapsed_s = max(LATENCY_FLOOR_S, time.monotonic() - start_s)
             warmup_fired = self._fired(env)
         except Exception as error:
-            print(f"[v68] warmup failed: {type(error).__name__}", file=sys.stderr, flush=True)
+            print(f"[B] warmup failed: {type(error).__name__}", file=sys.stderr, flush=True)
             return []
 
         candidates: list[AttackCandidate] = []
@@ -210,17 +207,10 @@ class AttackAlgorithm(AttackAlgorithmBase):
             returned_seen.add(warmup_message)
             replay_cost_s += warmup_elapsed_s * REPLAY_COST_COEF
 
-        # ── FIX: 不從 warmup 初始化 slowest (Pilkwang §9 leak #2) ──
-        # 原 91pointer: slowest_s = max(SLOWEST_INITIAL_S, min(warmup_elapsed_s, 40.0))
-        #   → warmup 的模型載入時間(75-146s)污染 slowest 估算
-        #   → deadline cushion ~175s, fill 過早停止
-        # 修正: 從 classify 階段的第一個真實交互才開始追蹤 slowest
-        slowest_s = SLOWEST_INITIAL_S
-
+        slowest_s = max(SLOWEST_INITIAL_S, min(warmup_elapsed_s, 40.0))
         classify_count = 0
         classify_lats: list[float] = []
         chosen_template = BASE_TEMPLATE
-        consecutive_frame_misses = 0
         next_index = 0
 
         while len(candidates) < cap:
@@ -243,7 +233,7 @@ class AttackAlgorithm(AttackAlgorithmBase):
                 env.interact(message, max_tool_hops=max_hops)
                 fired = self._fired(env)
             except Exception as error:
-                print(f"[v68] interaction failed: {type(error).__name__}", file=sys.stderr, flush=True)
+                print(f"[B] interaction failed: {type(error).__name__}", file=sys.stderr, flush=True)
                 break
 
             elapsed_s = max(LATENCY_FLOOR_S, time.monotonic() - started)
@@ -257,7 +247,7 @@ class AttackAlgorithm(AttackAlgorithmBase):
                     if median_latency_s > SLOW_ROW_THRESHOLD_S:
                         chosen_template = FRAME_TEMPLATE
                     print(
-                        "[v68] classify median=%.2fs template=%s"
+                        "[B] classify median=%.2fs template=%s"
                         % (median_latency_s, "frame" if chosen_template == FRAME_TEMPLATE else "base"),
                         file=sys.stderr,
                         flush=True,
@@ -266,21 +256,15 @@ class AttackAlgorithm(AttackAlgorithmBase):
             if fired:
                 candidates.append(_make_candidate(message))
                 returned_seen.add(message)
-                replay_cost_s += elapsed_s * REPLAY_COST_COEF
-                consecutive_frame_misses = 0
-            elif not classifying and chosen_template == FRAME_TEMPLATE:
-                consecutive_frame_misses += 1
-                if consecutive_frame_misses >= 2:
-                    chosen_template = BASE_TEMPLATE
-                    consecutive_frame_misses = 0
-                    print("[v68] frame missed twice; fallback to base", file=sys.stderr, flush=True)
+            # ── B: ALL interactions count, not just fired ──
+            replay_cost_s += elapsed_s * REPLAY_COST_COEF
 
         if replay_cost_s > replay_cap_s and len(candidates) > 1:
             keep = max(1, int(len(candidates) * (replay_cap_s / replay_cost_s)))
             candidates = candidates[:keep]
 
         print(
-            "[v68] returned=%d replay=%.0f/%.0f elapsed=%.1fs warmup=%s slowest=%.2f"
+            "[B] returned=%d replay=%.0f/%.0f elapsed=%.1fs warmup=%s slowest=%.2f"
             % (
                 len(candidates),
                 replay_cost_s,

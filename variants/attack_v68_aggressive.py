@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""v68 — 91pointer exact + warmup-slowest fix (Pilkwang §9 leak #2).
+"""v68-E aggressive — 91pointer exact + warmup-slowest fix (Pilkwang §9 leak #2).
 
 The 91-pointer (and every public88 engine) has a cold-start leak: warmup's
 model-load time (75-146s) inflates slowest_s, making the fill stop ~3x early.
@@ -77,7 +77,7 @@ FRAME_TEMPLATE = (
 
 CLASSIFY_N = 4
 SLOW_ROW_THRESHOLD_S = 12.0
-REPLAY_SAFE_FRACTION = 0.990
+REPLAY_SAFE_FRACTION = 0.995  # v68-E aggressive-E: tighter budget usage
 WALL_SAFE_FRACTION = 0.990
 SLOWEST_INITIAL_S = 22.0
 SLOWEST_MULTIPLIER = 1.20
@@ -199,7 +199,7 @@ class AttackAlgorithm(AttackAlgorithmBase):
             warmup_elapsed_s = max(LATENCY_FLOOR_S, time.monotonic() - start_s)
             warmup_fired = self._fired(env)
         except Exception as error:
-            print(f"[v68] warmup failed: {type(error).__name__}", file=sys.stderr, flush=True)
+            print(f"[v68-E aggressive] warmup failed: {type(error).__name__}", file=sys.stderr, flush=True)
             return []
 
         candidates: list[AttackCandidate] = []
@@ -243,7 +243,7 @@ class AttackAlgorithm(AttackAlgorithmBase):
                 env.interact(message, max_tool_hops=max_hops)
                 fired = self._fired(env)
             except Exception as error:
-                print(f"[v68] interaction failed: {type(error).__name__}", file=sys.stderr, flush=True)
+                print(f"[v68-E aggressive] interaction failed: {type(error).__name__}", file=sys.stderr, flush=True)
                 break
 
             elapsed_s = max(LATENCY_FLOOR_S, time.monotonic() - started)
@@ -257,7 +257,7 @@ class AttackAlgorithm(AttackAlgorithmBase):
                     if median_latency_s > SLOW_ROW_THRESHOLD_S:
                         chosen_template = FRAME_TEMPLATE
                     print(
-                        "[v68] classify median=%.2fs template=%s"
+                        "[v68-E aggressive] classify median=%.2fs template=%s"
                         % (median_latency_s, "frame" if chosen_template == FRAME_TEMPLATE else "base"),
                         file=sys.stderr,
                         flush=True,
@@ -273,14 +273,14 @@ class AttackAlgorithm(AttackAlgorithmBase):
                 if consecutive_frame_misses >= 2:
                     chosen_template = BASE_TEMPLATE
                     consecutive_frame_misses = 0
-                    print("[v68] frame missed twice; fallback to base", file=sys.stderr, flush=True)
+                    print("[v68-E aggressive] frame missed twice; fallback to base", file=sys.stderr, flush=True)
 
         if replay_cost_s > replay_cap_s and len(candidates) > 1:
             keep = max(1, int(len(candidates) * (replay_cap_s / replay_cost_s)))
             candidates = candidates[:keep]
 
         print(
-            "[v68] returned=%d replay=%.0f/%.0f elapsed=%.1fs warmup=%s slowest=%.2f"
+            "[v68-E aggressive] returned=%d replay=%.0f/%.0f elapsed=%.1fs warmup=%s slowest=%.2f"
             % (
                 len(candidates),
                 replay_cost_s,

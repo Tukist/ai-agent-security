@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""v68 — 91pointer exact + warmup-slowest fix (Pilkwang §9 leak #2).
+"""v68-D hops1 — 91pointer exact + warmup-slowest fix (Pilkwang §9 leak #2).
 
 The 91-pointer (and every public88 engine) has a cold-start leak: warmup's
 model-load time (75-146s) inflates slowest_s, making the fill stop ~3x early.
@@ -82,7 +82,7 @@ WALL_SAFE_FRACTION = 0.990
 SLOWEST_INITIAL_S = 22.0
 SLOWEST_MULTIPLIER = 1.20
 LATENCY_FLOOR_S = 0.001
-REPLAY_COST_COEF = 1.0
+REPLAY_COST_COEF = 1.8  # v68-D hops1-D: scale hops=1 probe to replay cost
 
 _ALPHABET = string.ascii_lowercase
 
@@ -195,11 +195,11 @@ class AttackAlgorithm(AttackAlgorithmBase):
         try:
             env.reset()
             start_s = time.monotonic()
-            env.interact(warmup_message, max_tool_hops=max_hops)
+            env.interact(warmup_message, max_tool_hops=1)  # v68-D hops1-D: warmup at 1 hop
             warmup_elapsed_s = max(LATENCY_FLOOR_S, time.monotonic() - start_s)
             warmup_fired = self._fired(env)
         except Exception as error:
-            print(f"[v68] warmup failed: {type(error).__name__}", file=sys.stderr, flush=True)
+            print(f"[v68-D hops1] warmup failed: {type(error).__name__}", file=sys.stderr, flush=True)
             return []
 
         candidates: list[AttackCandidate] = []
@@ -240,10 +240,10 @@ class AttackAlgorithm(AttackAlgorithmBase):
             fired = False
             try:
                 env.reset()
-                env.interact(message, max_tool_hops=max_hops)
+                env.interact(message, max_tool_hops=1)  # v68-D hops1-D: probe at 1 hop
                 fired = self._fired(env)
             except Exception as error:
-                print(f"[v68] interaction failed: {type(error).__name__}", file=sys.stderr, flush=True)
+                print(f"[v68-D hops1] interaction failed: {type(error).__name__}", file=sys.stderr, flush=True)
                 break
 
             elapsed_s = max(LATENCY_FLOOR_S, time.monotonic() - started)
@@ -257,7 +257,7 @@ class AttackAlgorithm(AttackAlgorithmBase):
                     if median_latency_s > SLOW_ROW_THRESHOLD_S:
                         chosen_template = FRAME_TEMPLATE
                     print(
-                        "[v68] classify median=%.2fs template=%s"
+                        "[v68-D hops1] classify median=%.2fs template=%s"
                         % (median_latency_s, "frame" if chosen_template == FRAME_TEMPLATE else "base"),
                         file=sys.stderr,
                         flush=True,
@@ -273,14 +273,14 @@ class AttackAlgorithm(AttackAlgorithmBase):
                 if consecutive_frame_misses >= 2:
                     chosen_template = BASE_TEMPLATE
                     consecutive_frame_misses = 0
-                    print("[v68] frame missed twice; fallback to base", file=sys.stderr, flush=True)
+                    print("[v68-D hops1] frame missed twice; fallback to base", file=sys.stderr, flush=True)
 
         if replay_cost_s > replay_cap_s and len(candidates) > 1:
             keep = max(1, int(len(candidates) * (replay_cap_s / replay_cost_s)))
             candidates = candidates[:keep]
 
         print(
-            "[v68] returned=%d replay=%.0f/%.0f elapsed=%.1fs warmup=%s slowest=%.2f"
+            "[v68-D hops1] returned=%d replay=%.0f/%.0f elapsed=%.1fs warmup=%s slowest=%.2f"
             % (
                 len(candidates),
                 replay_cost_s,

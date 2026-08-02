@@ -1,12 +1,13 @@
 {
-  "id": "ducnamphan/jed-attack-v050",
-  "title": "JED Attack v0.50 — Multi-Predicate",
-  "code_file": "kaggle_submission.ipynb",
-  "language": "python",
-  "kernel_type": "notebook",
-  "is_private": true,
-  "enable_gpu": false,
-  "enable_internet": false,
-  "competition_sources": ["ai-agent-security-multi-step-tool-attacks"],
-  "keywords": ["jed", "red-team", "agent-security"]
+ "id": "ducnamphan/jed-v71",
+ "title": "JED v71 REPLAY_COST_COEF=1.05",
+ "code_file": "kaggle_submission.ipynb",
+ "language": "python",
+ "kernel_type": "notebook",
+ "is_private": true,
+ "enable_gpu": false,
+ "enable_internet": false,
+ "competition_sources": [
+  "ai-agent-security-multi-step-tool-attacks"
+ ]
 }
