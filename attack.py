@@ -83,9 +83,10 @@ SLOWEST_INITIAL_S = 22.0
 SLOWEST_MULTIPLIER = 1.20
 LATENCY_FLOOR_S = 0.001
 REPLAY_COST_COEF = 1.0
-# 多消息：GPT(慢模型)用 3 条消息摊薄 env 固定成本，实测 +27.5% raw/s；
+# 多消息：GPT(慢模型)用 N 条消息摊薄 env 固定成本，实测 +27.5%(N=3)；
+# 理论 N 越大收益越高（N=5 再 +10%），但 fire rate 风险随 N 上升。
 # Gemma(快模型)保持单消息（多消息反而 -3.5%）
-MSG_PER_SLOW = 3
+MSG_PER_SLOW = 5
 MSG_PER_FAST = 1
 
 _ALPHABET = string.ascii_lowercase
