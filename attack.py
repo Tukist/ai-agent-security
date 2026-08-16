@@ -83,6 +83,10 @@ SLOWEST_INITIAL_S = 22.0
 SLOWEST_MULTIPLIER = 1.20
 LATENCY_FLOOR_S = 0.001
 REPLAY_COST_COEF = 1.0
+# 多消息：GPT(慢模型)用 3 条消息摊薄 env 固定成本，实测 +27.5% raw/s；
+# Gemma(快模型)保持单消息（多消息反而 -3.5%）
+MSG_PER_SLOW = 3
+MSG_PER_FAST = 1
 
 _ALPHABET = string.ascii_lowercase
 
@@ -114,7 +118,18 @@ def _make_candidate(message: str) -> AttackCandidate:
     try:
         return AttackCandidate.from_messages((cleaned,))
     except Exception:
-        return AttackCandidate(user_messages=(cleaned,))  # type: ignore[call-arg]
+        return AttackCandidate(user_messages=(cleaned,))
+
+
+def _multi_candidate(start_index: int, n: int, template: str = BASE_TEMPLATE) -> AttackCandidate:
+    """生成含 n 条独立消息的 candidate，每条不同 URL，用于摊薄 env 固定成本。"""
+    msgs = tuple(
+        _message(start_index + j, template) for j in range(n)
+    )
+    try:
+        return AttackCandidate.from_messages(msgs)
+    except Exception:
+        return AttackCandidate(user_messages=list(msgs))  # type: ignore[call-arg]
 
 
 def _emit(n: int, template: str = BASE_TEMPLATE) -> list[AttackCandidate]:
@@ -210,15 +225,18 @@ class AttackAlgorithm(AttackAlgorithmBase):
             returned_seen.add(warmup_message)
             replay_cost_s += warmup_elapsed_s * REPLAY_COST_COEF
 
-        slowest_s = max(SLOWEST_INITIAL_S, min(warmup_elapsed_s, 40.0))
+        # 修复：slowest 用 warmup 真实延迟初始化，不再被 classify 的 base 慢调用污染
+        slowest_s = max(min(warmup_elapsed_s, 40.0), LATENCY_FLOOR_S)
         classify_count = 0
         classify_lats: list[float] = []
         chosen_template = BASE_TEMPLATE
+        msgs_per = MSG_PER_FAST
         consecutive_frame_misses = 0
         next_index = 0
 
         while len(candidates) < cap:
-            next_cost_s = max(slowest_s * SLOWEST_MULTIPLIER, LATENCY_FLOOR_S)
+            # 多消息 candidate 的 replay 成本要乘消息数
+            next_cost_s = max(slowest_s * SLOWEST_MULTIPLIER * msgs_per, LATENCY_FLOOR_S)
             now_s = time.monotonic()
             if _should_stop(replay_cost_s, now_s, next_cost_s, replay_cap_s, wall_deadline_s):
                 break
@@ -241,31 +259,48 @@ class AttackAlgorithm(AttackAlgorithmBase):
                 break
 
             elapsed_s = max(LATENCY_FLOOR_S, time.monotonic() - started)
-            slowest_s = max(slowest_s, elapsed_s)
 
             if classifying:
                 classify_count += 1
                 classify_lats.append(elapsed_s)
+                # 修复：classify 阶段不更新 slowest（base 慢调用会污染 fill 成本估算）
                 if classify_count == CLASSIFY_N:
                     median_latency_s = _median(classify_lats)
                     if median_latency_s > SLOW_ROW_THRESHOLD_S:
                         chosen_template = FRAME_TEMPLATE
+                        msgs_per = MSG_PER_SLOW
+                    else:
+                        chosen_template = BASE_TEMPLATE
+                        msgs_per = MSG_PER_FAST
+                    # 分类完成，用 classify 中位延迟重置 slowest 作为 fill 起点
+                    slowest_s = max(median_latency_s, LATENCY_FLOOR_S)
                     print(
-                        "[90b] classify median=%.2fs template=%s"
-                        % (median_latency_s, "frame" if chosen_template == FRAME_TEMPLATE else "base"),
+                        "[90b] classify median=%.2fs template=%s msgs=%d"
+                        % (median_latency_s,
+                           "frame" if chosen_template == FRAME_TEMPLATE else "base",
+                           msgs_per),
                         file=sys.stderr,
                         flush=True,
                     )
+            else:
+                # 只在 fill 阶段更新 slowest
+                slowest_s = max(slowest_s, elapsed_s)
 
             if fired:
-                candidates.append(_make_candidate(message))
+                if classifying:
+                    candidates.append(_make_candidate(message))
+                    replay_cost_s += elapsed_s * REPLAY_COST_COEF
+                else:
+                    # fill 阶段：GPT 用多消息，Gemma 用单消息
+                    candidates.append(_multi_candidate(next_index - 1, msgs_per, template))
+                    replay_cost_s += elapsed_s * msgs_per * REPLAY_COST_COEF
                 returned_seen.add(message)
-                replay_cost_s += elapsed_s * REPLAY_COST_COEF
                 consecutive_frame_misses = 0
             elif not classifying and chosen_template == FRAME_TEMPLATE:
                 consecutive_frame_misses += 1
                 if consecutive_frame_misses >= 2:
                     chosen_template = BASE_TEMPLATE
+                    msgs_per = MSG_PER_FAST
                     consecutive_frame_misses = 0
                     print("[90b] frame missed twice; fallback to base", file=sys.stderr, flush=True)
 
